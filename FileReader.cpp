@@ -94,7 +94,7 @@ ClassInfo* ReadClass(char* filename){
 
 		char* pathto = (char*)malloc(32*sizeof(char));
 		strncpy(pathto, filename, strlen(filename) - k);
-		if (strstr(FILEPATHBOYS, filename) == 0 && strtr((char*)"java/", filename) == 0) {
+		if (strstr(FILEPATHBOYS, filename) == 0 && strstr((char*)"java/", filename) == 0) {
 			strcpy(filename, filename + k + 1);
 			std::string aux(filename + k + 1);
 
