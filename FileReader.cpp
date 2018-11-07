@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
-#include <cstring>
 #include "Class_Structures.h"
 #include <iostream>
 
@@ -97,7 +96,7 @@ ClassInfo* ReadClass(char* filename){
 		if (strstr(FILEPATHBOYS, filename) == 0 && strstr((char*)"java/", filename) == 0) {
 			strcpy(filename, filename + k + 1);
 			std::string aux(filename + k + 1);
-
+			
 			strcpy(filename, FILEPATHBOYS);
 			strcat(filename, aux.c_str());
 		}

@@ -3038,7 +3038,7 @@ void Frame::SetUp(){
 			Frame* nextFrame = new Frame(objectValue->classInstance->classDescription, constant_pool, methodNaT, objectValue->classInstance, &arguments);
 
 
-				// se a stack frame mudou, È porque teve <clinit> adicionado, ent„o terminar a execuÁ„o da instruÁ„o para eles serem executados.
+				// se a stack frame mudou, ÅEporque teve <clinit> adicionado, ent„o terminar a execuÁ„o da instruÁ„o para eles serem executados.
 				Interpreter::GetInstance()->PushFrame(nextFrame);
 			}
 	};
