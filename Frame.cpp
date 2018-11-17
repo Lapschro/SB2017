@@ -193,7 +193,7 @@ void Frame::SetUp(){
 			cpool = constant_pool + cpool->typeStringRef - 1;
 			*tipo->stringRef = std::string((char*)cpool->typeUTF8String.stringU);
 			break;
-		default:break; //methodRef e methodHandle não implementados
+		default:break; //methodRef e methodHandle nÃ£o implementados
 		}
 
 		operandStack->push(tipo);
@@ -232,7 +232,7 @@ void Frame::SetUp(){
 			cpool = constant_pool + cpool->typeStringRef - 1;
 			*tipo->stringRef = std::string((char*)cpool->typeUTF8String.stringU);
 			break;
-		default:break; //methodRef e methodHandle não implementados
+		default:break; //methodRef e methodHandle nÃ£o implementados
 		}
 		operandStack->push(tipo);
 	};
@@ -2901,7 +2901,12 @@ void Frame::SetUp(){
 						std::cout << (int32_t)*streamRef->basicRef->type_int;
 						break;
 					case(Types::LONG):
-						std::cout << (int64_t)*streamRef->basicRef->type_long;
+					{
+						int64_t aux;
+						memcpy(&aux, streamRef->basicRef->type_long, sizeof(int64_t));
+						
+						std::cout << aux;
+					}
 						break;
 					case(Types::SHORT):
 						std::cout << *streamRef->basicRef->type_short;
@@ -3038,7 +3043,7 @@ void Frame::SetUp(){
 			Frame* nextFrame = new Frame(objectValue->classInstance->classDescription, constant_pool, nameAndTypeIndex, objectValue->classInstance, &arguments);
 
 
-				// se a stack frame mudou, é porque teve <clinit> adicionado, então terminar a execução da instrução para eles serem executados.
+				// se a stack frame mudou, Ã© porque teve <clinit> adicionado, entÃ£o terminar a execuÃ§Ã£o da instruÃ§Ã£o para eles serem executados.
 				Interpreter::GetInstance()->PushFrame(nextFrame);
 			}
 	};
