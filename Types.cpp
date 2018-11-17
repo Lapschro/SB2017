@@ -8,7 +8,9 @@ void CreateBasicType(Types* type, char descr);
 void CreateFieldVars(ClassInstance* cinstance);
 
 Types::Types(char* descr){
-	std::string description(descr);
+	char abc[150];
+	strcpy(abc, descr);
+	std::string description(abc);
 
 	//create type string
 	if (description == "STRING") {
@@ -34,9 +36,9 @@ Types::Types(char* descr){
 	//create a instance type
 	else if (descr[0] == 'L') {
 		tag = CLASSINSTANCE;
-		descr[strlen(descr) - 1] = 0;
+		abc[strlen(abc) - 1] = 0;
 		classInstance = (ClassInstance*)malloc(sizeof(ClassInstance));
-		classInstance->classDescription = Interpreter::GetInstance()->GetClass(descr + 1);
+		classInstance->classDescription = Interpreter::GetInstance()->GetClass(abc + 1);
 	}
 
 }

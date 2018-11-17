@@ -90,8 +90,6 @@ int main(int argc, char** argv){
 	    }
 	}
 
-	//SetPath(filepath);
-
 	/**********************
 	**READING FILE        *
 	***********************/

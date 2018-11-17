@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
+#include <cstring>
 #include "Class_Structures.h"
 #include <iostream>
 
@@ -83,6 +84,7 @@ ClassInfo* ReadClass(char* filename){
 		strcpy(FILEPATHBOYS, filename);
 		FILEPATHBOYS[k + 1] = 0;
 		strcpy(filename, filename);
+		//std::cout <<FILEPATHBOYS << std::endl;
 	}
 	else {
 		int k;
@@ -93,17 +95,17 @@ ClassInfo* ReadClass(char* filename){
 
 		char* pathto = (char*)malloc(32*sizeof(char));
 		strncpy(pathto, filename, strlen(filename) - k);
-		if (strstr(FILEPATHBOYS, filename) == 0 && strstr((char*)"java/", filename) == 0) {
+		if (strstr(FILEPATHBOYS, filename) == NULL) {
 			strcpy(filename, filename + k + 1);
 			std::string aux(filename + k + 1);
-			
+
 			strcpy(filename, FILEPATHBOYS);
 			strcat(filename, aux.c_str());
 		}
 	}
 
 	if (!strstr(filename, ".class")) {
-		newfilename = (char*)malloc(/*(strlen(filename)+8)*/256*sizeof(char));
+		newfilename = (char*)malloc((strlen(filename)+10)*sizeof(char));
 		strcpy(newfilename, filename);
 		strcat(newfilename, (char*)".class");
 		filename = newfilename;

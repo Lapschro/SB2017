@@ -2840,22 +2840,22 @@ void Frame::SetUp(){
 
 	operations[182] = [](uint8_t* code, uint32_t* pc, std::stack<Types*>* operandStack, std::vector<Types*>* locals, Cp_Info* constant_pool, ClassInstance* thisClass) {
 		//INVOKEVIRTUAL BOYS
-		uint16_t index = code[++(*pc)] << 16;
-		index += code[++(*pc)];
+
+		uint16_t methodIndex = code[++(*pc)];
+		methodIndex = (methodIndex << 8) | code[++(*pc)];
 		(*pc)++;
 
-		uint32_t methodInfo = constant_pool[index - 1].typeMethodRef;
+		Cp_Info* methodRef = &constant_pool[methodIndex - 1];
 
-		uint16_t classInfoIndex = (uint16_t)(methodInfo >> 16);
+		uint16_t classNameIndex = constant_pool[(uint16_t)((methodRef->typeMethodRef) >> 16) - 1].typeClassInfo;
+		std::string className((char*)constant_pool[classNameIndex - 1].typeUTF8String.stringU);
 
-		uint16_t classNameIndex = constant_pool[classInfoIndex - 1].typeClassInfo;
-		//constant_pool[classNameIndex - 1].typeUTF8String.stringU
+		uint16_t nameAndTypeIndex = (uint16_t)methodRef->typeMethodRef;
+		Cp_Info* nameAndType = &constant_pool[nameAndTypeIndex - 1];
 
-		std::string className = ((char*)constant_pool[classNameIndex- 1].typeUTF8String.stringU);
-		uint32_t methodNaT = constant_pool[(uint16_t)(methodInfo - 1)].typeNameAndType;
+		std::string methodName = (char*)constant_pool[(uint16_t)((nameAndType->typeNameAndType) >> 16) - 1].typeUTF8String.stringU;
+		std::string methodDescriptor = (char*)constant_pool[(uint16_t)(nameAndType->typeNameAndType) - 1].typeUTF8String.stringU;
 
-		std::string methodName((char*)constant_pool[(uint16_t)(methodNaT >> 16) - 1].typeUTF8String.stringU);
-		std::string methodDescriptor = ((char*)constant_pool[(uint16_t)(methodNaT)-1].typeUTF8String.stringU);
 		
 		if (strstr(className.c_str(), "java/")) {
 			// Call of print or println
@@ -3000,8 +3000,8 @@ void Frame::SetUp(){
 			}
 		}
 		else {
-			uint16_t nargs = 0; // numero de argumentos contidos na pilha de operandos
-			uint16_t i = 1; // pulando o primeiro '('
+			uint16_t nargs = 0; 
+			uint16_t i = 1;
 			while (methodDescriptor[i] != ')') {
 				char baseType = methodDescriptor[i];
 				if (baseType == 'L') {
@@ -3030,25 +3030,22 @@ void Frame::SetUp(){
 			}
 
 			Types* objectValue = operandStack->top();
+			arguments.insert(arguments.begin(), objectValue);
+
 			operandStack->pop();
 
-
-			// necessita ser uma referÍncia para objeto
 			//Receives cInfo from Classes' map, constantPool from the current class, method index from code attribute, cInstance as current class instance and a vector of method's arguments
-			Frame* nextFrame = new Frame(objectValue->classInstance->classDescription, constant_pool, methodNaT, objectValue->classInstance, &arguments);
+			Frame* nextFrame = new Frame(objectValue->classInstance->classDescription, constant_pool, nameAndTypeIndex, objectValue->classInstance, &arguments);
 
 
-				// se a stack frame mudou, ÅEporque teve <clinit> adicionado, ent„o terminar a execuÁ„o da instruÁ„o para eles serem executados.
+				// se a stack frame mudou, È porque teve <clinit> adicionado, ent„o terminar a execuÁ„o da instruÁ„o para eles serem executados.
 				Interpreter::GetInstance()->PushFrame(nextFrame);
 			}
 	};
 
 	operations[183] = [](uint8_t* code, uint32_t* pc, std::stack<Types*>* operandStack, std::vector<Types*>* locals, Cp_Info* constant_pool, ClassInstance* thisClass) {
 		//InvokeSpecial
-		//VMStack &stackFrame = VMStack::getInstance();
-		//Frame *topFrame = stackFrame.getTopFrame();
 
-		//stack<Value> operandStackBackup = topFrame->backupOperandStack();
 		uint16_t methodIndex = code[++(*pc)];
 		methodIndex = (methodIndex<<8) | code[++(*pc)];
 		(*pc)++;
@@ -3118,7 +3115,7 @@ void Frame::SetUp(){
 			args.insert(args.begin(), objectValue);
 
 			ClassInstance *object = objectValue->classInstance;
-			Frame* nextFrame = new Frame(objectValue->classInstance->classDescription, constant_pool,nameAndTypeIndex, objectValue->classInstance, &args);
+			Frame* nextFrame = new Frame(objectValue->classInstance->classDescription, constant_pool,nameAndTypeIndex, object, &args);
 			Interpreter::GetInstance()->PushFrame(nextFrame);
 		}
 	}; 
@@ -3149,8 +3146,8 @@ void Frame::SetUp(){
 			exit(1);
 		}
 		else {
-			uint16_t nargs = 0; // numero de argumentos contidos na pilha de operandos
-			uint16_t i = 1; // pulando o primeiro '('
+			uint16_t nargs = 0; 
+			uint16_t i = 1;
 			while (methodDescriptor[i] != ')') {
 				char baseType = methodDescriptor[i];
 				if (baseType == 'L') {
@@ -3193,7 +3190,7 @@ void Frame::SetUp(){
 
 		uint16_t classRef = constant_pool[index - 1].typeClassInfo;
 		char* className = (char*)constant_pool[classRef - 1].typeUTF8String.stringU;
-		std::string loko = "L";
+		std::string loko("L");
 		loko += className;
 
 
@@ -3212,6 +3209,7 @@ void Frame::SetUp(){
 
 		operandStack->push(tipo);
 		(*pc) += 3;
+		return;
 	};
 	//newarray
 	operations[188] = [](uint8_t* code, uint32_t* pc, std::stack<Types*>* operandStack, std::vector<Types*>* locals, Cp_Info* constant_pool, ClassInstance* thisClass) {
@@ -3427,9 +3425,23 @@ Frame::Frame(ClassInfo* cInfo, Cp_Info* constantPool, uint16_t methodIndex, Clas
 
 	this->locals.resize(codeAttribute->max_locals);
 
+	thisClass = cInstance;
+
+
 	for (int i = 0; i < args->size(); i++) {
 		this->locals[i] = args->at(i);
 	}
+
+	//load local variables
+	/*for(int i = 0; i < codeAttribute->attributes_count; ++i){
+		int strref = codeAttribute->attributes[i].name_index;
+		if (!strcmp((char*)cInfo->constant_pool[strref - 1].typeUTF8String.stringU, "LocalVariableTable")) {
+			for (int j = 0; j < codeAttribute->attributes[i].localVariableAttribute->local_variable_table_length; j++) {
+				int typeRefIndex = codeAttribute->attributes[i].localVariableAttribute->local_variable_table[j].descriptor_index;
+				locals.emplace_back(new Types((char*)(cInfo->constant_pool[typeRefIndex - 1].typeUTF8String.stringU)));
+			}
+		}
+	}*/
 }
 
 Frame::Frame(ClassInfo* cInfo, Cp_Info* constantPool, ClassInstance* cInstance, uint16_t method_Index) {
@@ -3484,5 +3496,4 @@ bool Frame::HandleException(int index){
 	}
 	return false;
 }
-
 

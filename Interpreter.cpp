@@ -72,14 +72,15 @@ void Interpreter::AddClass(ClassInfo* cinfo){
 	int i;
 	i = cinfo->constant_pool[cinfo->this_class - 1].typeClassInfo;
 	char* aux;
-	aux = (char*)malloc((cinfo->constant_pool[i - 1].typeUTF8String.size) * sizeof(char) * 2);
+	aux = (char*)malloc(strlen(((char*)cinfo->constant_pool[i - 1].typeUTF8String.stringU)) * sizeof(char));
+	
 	int j;
 	for (j = strlen(((char*)cinfo->constant_pool[i - 1].typeUTF8String.stringU)) - 1; j >= 0; j--) {
 		if (cinfo->constant_pool[i - 1].typeUTF8String.stringU[j] == '/')
 			break;
 	}
 
-	strcpy(aux, (char*)(cinfo->constant_pool[i - 1].typeUTF8String.stringU + j + 1));
+	strcpy(aux, (char*)cinfo->constant_pool[i - 1].typeUTF8String.stringU + j + 1);
 
 	std::string key(aux);
 	key += ".class";
